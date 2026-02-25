@@ -1,0 +1,380 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String   @id @default(uuid())
+  name     String
+  email    String   @unique
+  password String
+  role     UserRole @default(SALES_REP)
+  avatar   String?
+  isActive Boolean  @default(true)
+
+  ownedAccounts    Account[]
+  ownedContacts    Contact[] @relation("ContactOwner")
+  createdContacts  Contact[] @relation("ContactCreatedBy")
+  modifiedContacts Contact[] @relation("ContactModifiedBy")
+  ownedDeals       Deal[]    @relation("DealOwner")
+  createdDeals     Deal[]    @relation("DealCreatedBy")
+  modifiedDeals    Deal[]    @relation("DealModifiedBy")
+
+  tasks              Task[] // tasks owned by the user
+  reminders          Reminder[]
+  notifications      Notification[]
+  createdTasks       Task[]             @relation("TaskCreatedBy")
+  modifiedTasks      Task[]             @relation("TaskModifiedBy")
+  dealStageHistories DealStageHistory[] @relation("StageChangedBy")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  SALES_REP
+}
+
+model Account {
+  id             String @id @default(uuid())
+  accountName    String
+  accountOwnerId String
+
+  // NEW: Account Image
+  image String? @db.Text
+
+  parentAccountId String?
+  parentAccount   Account?  @relation("ParentAccount", fields: [parentAccountId], references: [id])
+  childAccounts   Account[] @relation("ParentAccount")
+
+  accountType   AccountType?
+  industry      String?
+  annualRevenue Float?
+  employees     Int?
+  rating        AccountRating?
+
+  phone         String?
+  website       String?
+  ownership     String?
+  accountNumber String? @unique
+
+  billingStreet  String?
+  billingCity    String?
+  billingState   String?
+  billingPincode String?
+  billingCountry String?
+
+  shippingStreet  String?
+  shippingCity    String?
+  shippingState   String?
+  shippingPincode String?
+  shippingCountry String?
+
+  owner    User      @relation(fields: [accountOwnerId], references: [id])
+  contacts Contact[]
+  deals    Deal[]
+  tasks    Task[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([accountOwnerId])
+  @@index([accountName])
+}
+
+enum AccountType {
+  PROSPECT
+  CUSTOMER_DIRECT
+  CUSTOMER_CHANNEL
+  CHANNEL_PARTNER
+  INSTALLATION_PARTNER
+  TECHNOLOGY_PARTNER
+  OTHER
+}
+
+enum AccountRating {
+  HOT
+  WARM
+  COLD
+}
+
+model Contact {
+  id         String  @id @default(uuid())
+  firstName  String
+  lastName   String?
+  email      String  @unique
+  phone      String?
+  mobile     String?
+  title      String?
+  department String?
+
+  // Contact Image
+  image String? @db.Text
+
+  // NEW: Lead Source for Contact
+  leadSource LeadSource?
+
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  contactOwnerId String
+  owner          User   @relation("ContactOwner", fields: [contactOwnerId], references: [id])
+
+  mailingCountry String?
+  mailingFlat    String?
+  mailingStreet  String?
+  mailingCity    String?
+  mailingState   String?
+  mailingZip     String?
+
+  description String?
+
+  createdById String
+  createdBy   User   @relation("ContactCreatedBy", fields: [createdById], references: [id])
+
+  modifiedById String
+  modifiedBy   User   @relation("ContactModifiedBy", fields: [modifiedById], references: [id])
+
+  deals Deal[]
+  tasks Task[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([accountId])
+  @@index([contactOwnerId])
+}
+
+model Deal {
+  id String @id @default(uuid())
+
+  dealName String
+
+  // ⭐ AUTO GENERATED
+  dealLogId String @unique
+
+  amount          Float?
+  expectedRevenue Float?
+  closingDate     DateTime
+  probability     Int?
+
+  stage DealStage
+
+  // ⭐ NEW FIELDS
+  personInCharge String?
+
+  productGroup ProductGroup?
+  weightage    Weightage?
+
+  type DealType?
+
+  nextStep       String?
+  leadSource     LeadSource?
+  campaignSource String?
+  description    String?
+  stageHistory   DealStageHistory[]
+  dealOwnerId    String
+  owner          User               @relation("DealOwner", fields: [dealOwnerId], references: [id])
+
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  createdById String
+  createdBy   User   @relation("DealCreatedBy", fields: [createdById], references: [id])
+
+  modifiedById String
+  modifiedBy   User   @relation("DealModifiedBy", fields: [modifiedById], references: [id])
+
+  tasks Task[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([accountId])
+  @@index([dealOwnerId])
+  @@index([stage])
+}
+
+enum ProductGroup {
+  MTS_PRO
+  MTS_STANDARD
+  FACTEYES
+  MTS_ASSEMBLY
+}
+
+enum DealStage {
+  RFQ
+  VISIT_MEETING
+  PREVIEW
+  REGRETTED
+  TECHNICAL_PROPOSAL
+  COMMERCIAL_PROPOSAL
+  REVIEW_FEEDBACK
+  MOVED_TO_PURCHASE
+  NEGOTIATION
+  CLOSED_WON
+  CLOSED_LOST
+  CLOSED_LOST_TO_COMPETITION
+}
+
+enum Weightage {
+  PROBABILITY
+  BALLPARK_OFFER
+  BUDGETARY_OFFER
+  DETAIL_L1
+  DETAIL_L2
+  FIRM_AFTER_PRICE_FINALIZATION
+  TECHNICAL_ONLY
+}
+
+enum DealType {
+  EXISTING_BUSINESS
+  NEW_BUSINESS
+}
+
+enum LeadSource {
+  WEB
+  PHONE_INQUIRY
+  PARTNER_REFERRAL
+  EMPLOYEE_REFERRAL
+  COLD_CALL
+  TRADE_SHOW
+  ADVERTISEMENT
+  SOCIAL_MEDIA
+  EMAIL_CAMPAIGN
+  PURCHASED_LIST
+  OTHER
+}
+
+model DealStageHistory {
+  id String @id @default(uuid())
+
+  dealId String
+  deal   Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  stage           DealStage
+  amount          Float?
+  probability     Int?
+  expectedRevenue Float?
+  closingDate     DateTime?
+
+  changedById String
+  changedBy   User   @relation("StageChangedBy", fields: [changedById], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([dealId])
+}
+
+model Task {
+  id      String    @id @default(uuid())
+  subject String
+  dueDate DateTime?
+
+  status   TaskStatus   @default(NOT_STARTED)
+  priority TaskPriority @default(NORMAL)
+
+  reminder    Boolean @default(false)
+  repeat      Boolean @default(false)
+  description String?
+
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id])
+
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id])
+
+  accountId String?
+  account   Account? @relation(fields: [accountId], references: [id])
+
+  dealId    String?
+  deal      Deal?      @relation(fields: [dealId], references: [id])
+  reminders Reminder[]
+
+  createdById String
+  createdBy   User   @relation("TaskCreatedBy", fields: [createdById], references: [id])
+
+  modifiedById String
+  modifiedBy   User   @relation("TaskModifiedBy", fields: [modifiedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId])
+  @@index([dueDate])
+  @@index([status])
+  @@index([priority])
+  @@index([contactId])
+  @@index([accountId])
+  @@index([dealId])
+}
+
+enum TaskStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  DEFERRED
+  WAITING
+}
+
+enum TaskPriority {
+  HIGH
+  HIGHEST
+  NORMAL
+  LOW
+  LOWEST
+}
+
+model Reminder {
+  id          String  @id @default(uuid())
+  title       String
+  description String?
+
+  remindAt    DateTime
+  emailBefore Int?
+  popupBefore Int?
+
+  isEmailSent Boolean @default(false)
+  isPopupSent Boolean @default(false)
+
+  priority String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  contactId String?
+  accountId String?
+  dealId    String?
+
+  // ✅ ADD THIS
+  taskId String?
+  task   Task?   @relation(fields: [taskId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id       String  @id @default(uuid())
+  title    String
+  message  String
+  type     String
+  recordId String? // ⭐ ADD THIS
+
+  isRead Boolean @default(false)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([recordId])
+}
