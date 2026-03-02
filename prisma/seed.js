@@ -38,12 +38,92 @@ async function main() {
   });
 
   // 🏢 ACCOUNTS (unchanged — your data kept)
-  const account1 = await prisma.account.create({ data: { accountName: "Acme Corporation", accountOwnerId: salesRep1.id, accountType: "CUSTOMER_DIRECT" }});
-  const account2 = await prisma.account.create({ data: { accountName: "Global Tech Solutions", accountOwnerId: salesRep2.id, accountType: "PROSPECT" }});
-  const account3 = await prisma.account.create({ data: { accountName: "Sunrise Healthcare", accountOwnerId: manager.id, accountType: "CUSTOMER_DIRECT" }});
-  const account4 = await prisma.account.create({ data: { accountName: "EduLearn Platform", accountOwnerId: salesRep1.id, accountType: "PROSPECT" }});
-  const account5 = await prisma.account.create({ data: { accountName: "FinanceFlow Inc", accountOwnerId: salesRep2.id, accountType: "CHANNEL_PARTNER" }});
-  const account6 = await prisma.account.create({ data: { accountName: "Acme Labs (R&D Division)", parentAccountId: account1.id, accountOwnerId: salesRep1.id, accountType: "CUSTOMER_DIRECT" }});
+  import { AccountType, AccountRating } from "@prisma/client";
+
+const account1 = await prisma.account.create({
+  data: {
+    accountName: "Acme Corporation",
+    accountOwnerId: salesRep1.id,
+    accountType: AccountType.CUSTOMER_DIRECT,
+    rating: AccountRating.HOT,
+    phone: "+1 555-1000",
+    website: "https://acme.com",
+    industry: "Manufacturing",
+    annualRevenue: 5000000,
+    employees: 1200,
+    billingCity: "New York",
+    billingCountry: "USA",
+    shippingCity: "New York",
+    shippingCountry: "USA",
+  },
+});
+
+const account2 = await prisma.account.create({
+  data: {
+    accountName: "Global Tech Solutions",
+    accountOwnerId: salesRep2.id,
+    accountType: AccountType.PROSPECT,
+    rating: AccountRating.WARM,
+    phone: "+1 555-2000",
+    website: "https://globaltech.com",
+    industry: "Software",
+    employees: 350,
+    billingCity: "San Francisco",
+    billingCountry: "USA",
+  },
+});
+
+const account3 = await prisma.account.create({
+  data: {
+    accountName: "Sunrise Healthcare",
+    accountOwnerId: manager.id,
+    accountType: AccountType.CUSTOMER_DIRECT,
+    rating: AccountRating.HOT,
+    phone: "+1 555-3000",
+    industry: "Healthcare",
+    employees: 800,
+    billingCity: "Chicago",
+    billingCountry: "USA",
+  },
+});
+
+const account4 = await prisma.account.create({
+  data: {
+    accountName: "EduLearn Platform",
+    accountOwnerId: salesRep1.id,
+    accountType: AccountType.PROSPECT,
+    rating: AccountRating.COLD,
+    industry: "EdTech",
+    employees: 90,
+    website: "https://edulearn.com",
+  },
+});
+
+const account5 = await prisma.account.create({
+  data: {
+    accountName: "FinanceFlow Inc",
+    accountOwnerId: salesRep2.id,
+    accountType: AccountType.CHANNEL_PARTNER,
+    rating: AccountRating.WARM,
+    industry: "FinTech",
+    employees: 500,
+    website: "https://financeflow.com",
+  },
+});
+
+const account6 = await prisma.account.create({
+  data: {
+    accountName: "Acme Labs (R&D Division)",
+    parentAccountId: account1.id,
+    accountOwnerId: salesRep1.id,
+    accountType: AccountType.CUSTOMER_DIRECT,
+    rating: AccountRating.HOT,
+    industry: "Research",
+    employees: 150,
+    billingCity: "Boston",
+    billingCountry: "USA",
+  },
+});
 
   // 👥 CONTACTS
   const contact1 = await prisma.contact.create({ data: { firstName: "Robert", lastName: "Johnson", email: "robert.johnson@acme.com", accountId: account1.id, contactOwnerId: salesRep1.id, createdById: salesRep1.id, modifiedById: salesRep1.id }});

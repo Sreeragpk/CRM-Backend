@@ -44,10 +44,15 @@ export const register = asyncHandler(async (req, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
+  // res.status(201).json({
+  //   success: true,
+  //   data: { user, token },
+  // });
   res.status(201).json({
-    success: true,
-    data: { user, token },
-  });
+  success: true,
+  message: "User created successfully",
+  data: user,
+});
 });
 
 // @desc    Login user
@@ -124,4 +129,23 @@ export const getUsers = asyncHandler(async (req, res) => {
   });
 
   res.json({ success: true, data: users });
+});
+
+export const deleteUser = asyncHandler(async (req, res) => {
+  const user = await prisma.user.findUnique({
+    where: { id: req.params.id },
+  });
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  await prisma.user.delete({
+    where: { id: req.params.id },
+  });
+
+  res.json({
+    success: true,
+    message: "User deleted successfully",
+  });
 });

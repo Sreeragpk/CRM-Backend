@@ -90,6 +90,7 @@ import analyticsRoutes from "./routes/analytics.routes.js";
 import taskRoutes from "./routes/task.routes.js";
 import reminderRoutes from "./routes/reminder.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
+import "./jobs/dealReminder.job.js";
 
 dotenv.config();
 

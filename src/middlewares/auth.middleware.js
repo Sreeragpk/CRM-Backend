@@ -1,3 +1,4 @@
+// src/middlewares/auth.middleware.js
 import jwt from "jsonwebtoken";
 import prisma from "../utils/prisma.js";
 import { ApiError } from "../utils/ApiError.js";

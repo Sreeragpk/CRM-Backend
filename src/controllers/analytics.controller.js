@@ -155,15 +155,18 @@ export const getDealsByStage = asyncHandler(async (req, res) => {
   });
 
   const stageOrder = [
-    "QUALIFICATION",
-    "NEEDS_ANALYSIS",
-    "VALUE_PROPOSITION",
-    "IDENTIFY_DECISION_MAKERS",
-    "PROPOSAL_PRICE_QUOTE",
-    "NEGOTIATION_REVIEW",
-    "CLOSED_WON",
-    "CLOSED_LOST",
-    "CLOSED_LOST_TO_COMPETITION",
+     "RFQ",
+  "VISIT_MEETING",
+  "PREVIEW",
+  "REGRETTED",
+  "TECHNICAL_PROPOSAL",
+  "COMMERCIAL_PROPOSAL",
+  "REVIEW_FEEDBACK",
+  "MOVED_TO_PURCHASE",
+  "NEGOTIATION",
+  "CLOSED_WON",
+  "CLOSED_LOST",
+  "CLOSED_LOST_TO_COMPETITION",
   ];
 
   const sortedStages = stageOrder.map((stage) => {
