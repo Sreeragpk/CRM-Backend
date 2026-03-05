@@ -195,6 +195,10 @@ model Deal {
   modifiedBy   User   @relation("DealModifiedBy", fields: [modifiedById], references: [id])
 
   tasks Task[]
+  // 🔐 Deal Risk Analytics (NEW)
+  risk        DealRisk?
+  riskHistory DealRiskHistory[]
+
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -241,6 +245,12 @@ enum DealType {
   NEW_BUSINESS
 }
 
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
 enum LeadSource {
   WEB
   PHONE_INQUIRY
@@ -377,4 +387,40 @@ model Notification {
   createdAt DateTime @default(now())
 
   @@index([recordId])
+}
+
+model DealRisk {
+  id        String   @id @default(uuid())
+
+  dealId    String   @unique
+  deal      Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  score     Int      // 0–100 risk score
+  riskLevel RiskLevel
+
+  // Explainability layer
+  factors   Json     // { daysInStage: 12, lastActivityDays: 5, probability: 40 }
+
+  // Playbook actions
+  playbook  Json     // ["Call decision maker", "Send revised quote"]
+
+  lastCalculatedAt DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([riskLevel])
+}
+model DealRiskHistory {
+  id        String   @id @default(uuid())
+
+  dealId    String
+  deal      Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  score     Int
+  riskLevel RiskLevel
+  factors   Json
+
+  createdAt DateTime @default(now())
+
+  @@index([dealId])
+  @@index([createdAt])
 }
